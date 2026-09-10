@@ -71,7 +71,6 @@ class _RootShellState extends State<RootShell> {
         : StatsScreen(key: const ValueKey('stats'), repository: widget.repository);
 
     return Scaffold(
-      extendBody: true,
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 220),
         transitionBuilder: (child, animation) => FadeTransition(
