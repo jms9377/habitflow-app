@@ -42,13 +42,22 @@ class _RootShellState extends State<RootShell> {
 
   @override
   Widget build(BuildContext context) {
-    final screens = [
-      HomeScreen(repository: widget.repository),
-      StatsScreen(repository: widget.repository),
-    ];
+    final screen = _index == 0
+        ? HomeScreen(key: const ValueKey('home'), repository: widget.repository)
+        : StatsScreen(key: const ValueKey('stats'), repository: widget.repository);
 
     return Scaffold(
-      body: IndexedStack(index: _index, children: screens),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 220),
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(begin: const Offset(0, 0.02), end: Offset.zero).animate(animation),
+            child: child,
+          ),
+        ),
+        child: screen,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),

@@ -5,18 +5,28 @@ import '../data/habit_repository.dart';
 import '../providers/habit_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/calendar_heatmap.dart';
+import '../widgets/monthly_calendar.dart';
 import 'add_edit_habit_screen.dart';
 
-class HabitDetailScreen extends StatelessWidget {
+enum _CalendarView { month, heatmap }
+
+class HabitDetailScreen extends StatefulWidget {
   const HabitDetailScreen({super.key, required this.habitId, required this.repository});
 
   final String habitId;
   final HabitRepository repository;
 
   @override
+  State<HabitDetailScreen> createState() => _HabitDetailScreenState();
+}
+
+class _HabitDetailScreenState extends State<HabitDetailScreen> {
+  _CalendarView _view = _CalendarView.month;
+
+  @override
   Widget build(BuildContext context) {
     final provider = context.watch<HabitProvider>();
-    final habit = repository.getHabit(habitId);
+    final habit = widget.repository.getHabit(widget.habitId);
 
     if (habit == null) {
       return const Scaffold(body: Center(child: Text('Habit not found.')));
@@ -34,7 +44,7 @@ class HabitDetailScreen extends StatelessWidget {
             icon: const Icon(Icons.edit_outlined),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => AddEditHabitScreen(repository: repository, existing: habit),
+                builder: (_) => AddEditHabitScreen(repository: widget.repository, existing: habit),
               ),
             ),
           ),
@@ -92,28 +102,97 @@ class HabitDetailScreen extends StatelessWidget {
           const SizedBox(height: 24),
           Row(
             children: [
-              Expanded(child: _StatCard(label: 'Current streak', value: '$current 🔥', color: color)),
+              Expanded(child: _StatCard(label: 'Current streak', targetValue: current.toDouble(), suffix: ' 🔥', color: color)),
               const SizedBox(width: 12),
-              Expanded(child: _StatCard(label: 'Best streak', value: '$longest', color: color)),
+              Expanded(child: _StatCard(label: 'Best streak', targetValue: longest.toDouble(), color: color)),
               const SizedBox(width: 12),
-              Expanded(child: _StatCard(label: '30-day rate', value: '${(rate * 100).round()}%', color: color)),
+              Expanded(child: _StatCard(label: '30-day rate', targetValue: rate * 100, suffix: '%', color: color)),
             ],
           ),
           const SizedBox(height: 28),
-          Text('Last 14 weeks', style: Theme.of(context).textTheme.labelLarge),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _view == _CalendarView.month ? 'Calendar' : 'Last 14 weeks',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              _ViewToggle(
+                view: _view,
+                color: color,
+                onChanged: (v) => setState(() => _view = v),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
-          CalendarHeatmap(habit: habit, repository: repository),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: _view == _CalendarView.month
+                ? MonthlyCalendar(key: const ValueKey('month'), habit: habit, repository: widget.repository)
+                : CalendarHeatmap(key: const ValueKey('heatmap'), habit: habit, repository: widget.repository),
+          ),
         ],
       ),
     );
   }
 }
 
+class _ViewToggle extends StatelessWidget {
+  const _ViewToggle({required this.view, required this.color, required this.onChanged});
+
+  final _CalendarView view;
+  final Color color;
+  final ValueChanged<_CalendarView> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(10)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ToggleButton(icon: Icons.calendar_view_month, selected: view == _CalendarView.month, color: color,
+              onTap: () => onChanged(_CalendarView.month)),
+          _ToggleButton(icon: Icons.grid_view_rounded, selected: view == _CalendarView.heatmap, color: color,
+              onTap: () => onChanged(_CalendarView.heatmap)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ToggleButton extends StatelessWidget {
+  const _ToggleButton({required this.icon, required this.selected, required this.color, required this.onTap});
+
+  final IconData icon;
+  final bool selected;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? color.withValues(alpha: 0.22) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, size: 18, color: selected ? color : AppColors.textSecondary),
+      ),
+    );
+  }
+}
+
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value, required this.color});
+  const _StatCard({required this.label, required this.targetValue, required this.color, this.suffix = ''});
 
   final String label;
-  final String value;
+  final double targetValue;
+  final String suffix;
   final Color color;
 
   @override
@@ -127,7 +206,15 @@ class _StatCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: color)),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: targetValue),
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, _) => Text(
+              '${value.round()}$suffix',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: color),
+            ),
+          ),
           const SizedBox(height: 4),
           Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
         ],

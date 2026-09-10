@@ -1,16 +1,27 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../data/habit_repository.dart';
+import '../models/habit.dart';
 import '../models/habit_category.dart';
 import '../providers/habit_provider.dart';
 import '../theme/app_theme.dart';
 
-class StatsScreen extends StatelessWidget {
+enum _Period { week, month }
+
+class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key, required this.repository});
 
   final HabitRepository repository;
+
+  @override
+  State<StatsScreen> createState() => _StatsScreenState();
+}
+
+class _StatsScreenState extends State<StatsScreen> {
+  _Period _period = _Period.week;
 
   @override
   Widget build(BuildContext context) {
@@ -35,17 +46,34 @@ class StatsScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: _SummaryCard(label: 'Habits', value: '${habits.length}')),
+              Expanded(child: _SummaryCard(label: 'Habits', targetValue: habits.length.toDouble())),
               const SizedBox(width: 12),
-              Expanded(child: _SummaryCard(label: 'Best streak', value: '$bestStreak 🔥')),
+              Expanded(child: _SummaryCard(label: 'Best streak', targetValue: bestStreak.toDouble(), suffix: ' 🔥')),
               const SizedBox(width: 12),
-              Expanded(child: _SummaryCard(label: 'Avg. rate', value: '${(overallRate * 100).round()}%')),
+              Expanded(child: _SummaryCard(label: 'Avg. rate', targetValue: overallRate * 100, suffix: '%')),
             ],
           ),
           const SizedBox(height: 28),
-          Text('Last 7 days', style: Theme.of(context).textTheme.labelLarge),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Progress', style: Theme.of(context).textTheme.labelLarge),
+              _PeriodToggle(period: _period, onChanged: (p) => setState(() => _period = p)),
+            ],
+          ),
           const SizedBox(height: 12),
-          SizedBox(height: 180, child: _LastWeekChart(repository: repository, habits: habits)),
+          SizedBox(
+            height: 180,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: _ProgressChart(
+                key: ValueKey(_period),
+                repository: widget.repository,
+                habits: habits,
+                period: _period,
+              ),
+            ),
+          ),
           const SizedBox(height: 28),
           _CategorySection(
             title: 'General habits',
@@ -66,10 +94,64 @@ class StatsScreen extends StatelessWidget {
   }
 }
 
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.label, required this.value});
+class _PeriodToggle extends StatelessWidget {
+  const _PeriodToggle({required this.period, required this.onChanged});
+
+  final _Period period;
+  final ValueChanged<_Period> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(10)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _PeriodButton(label: 'Week', selected: period == _Period.week, onTap: () => onChanged(_Period.week)),
+          _PeriodButton(label: 'Month', selected: period == _Period.month, onTap: () => onChanged(_Period.month)),
+        ],
+      ),
+    );
+  }
+}
+
+class _PeriodButton extends StatelessWidget {
+  const _PeriodButton({required this.label, required this.selected, required this.onTap});
+
   final String label;
-  final String value;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.general.withValues(alpha: 0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: selected ? AppColors.general : AppColors.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({required this.label, required this.targetValue, this.suffix = ''});
+  final String label;
+  final double targetValue;
+  final String suffix;
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +164,15 @@ class _SummaryCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: targetValue),
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, _) => Text(
+              '${value.round()}$suffix',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            ),
+          ),
           const SizedBox(height: 4),
           Text(label, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
         ],
@@ -91,27 +181,50 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-class _LastWeekChart extends StatelessWidget {
-  const _LastWeekChart({required this.repository, required this.habits});
+/// Shows either the last 7 days' daily completion rate, or the last ~5
+/// weeks' weekly completion rate, as percentages - so "week" and "month"
+/// are directly comparable on the same 0-100 scale.
+class _ProgressChart extends StatelessWidget {
+  const _ProgressChart({super.key, required this.repository, required this.habits, required this.period});
 
   final HabitRepository repository;
-  final List habits;
+  final List<Habit> habits;
+  final _Period period;
 
   @override
   Widget build(BuildContext context) {
-    final today = DateTime.now();
-    final counts = <int>[];
-    for (int i = 6; i >= 0; i--) {
-      final day = DateTime(today.year, today.month, today.day).subtract(Duration(days: i));
-      final scheduled = habits.where((h) => h.isScheduledOn(day)).toList();
-      final done = scheduled.where((h) => repository.isCompletedOn(h.id, day)).length;
-      counts.add(done);
+    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final values = <double>[];
+    final labels = <String>[];
+
+    if (period == _Period.week) {
+      const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      for (int i = 6; i >= 0; i--) {
+        final day = today.subtract(Duration(days: i));
+        final scheduled = habits.where((h) => h.isScheduledOn(day)).toList();
+        final done = scheduled.where((h) => repository.isCompletedOn(h.id, day)).length;
+        values.add(scheduled.isEmpty ? 0 : done / scheduled.length * 100);
+        labels.add(dayLabels[day.weekday - 1]);
+      }
+    } else {
+      for (int w = 4; w >= 0; w--) {
+        final weekEnd = today.subtract(Duration(days: w * 7));
+        final weekStart = weekEnd.subtract(const Duration(days: 6));
+        int scheduledCount = 0;
+        int doneCount = 0;
+        for (var day = weekStart; !day.isAfter(weekEnd); day = day.add(const Duration(days: 1))) {
+          final scheduled = habits.where((h) => h.isScheduledOn(day) && !h.createdAt.isAfter(day)).toList();
+          scheduledCount += scheduled.length;
+          doneCount += scheduled.where((h) => repository.isCompletedOn(h.id, day)).length;
+        }
+        values.add(scheduledCount == 0 ? 0 : doneCount / scheduledCount * 100);
+        labels.add(w == 0 ? 'This wk' : '-${w}w');
+      }
     }
-    final maxY = (counts.isEmpty ? 1 : counts.reduce((a, b) => a > b ? a : b)).toDouble();
 
     return BarChart(
       BarChartData(
-        maxY: maxY < 1 ? 1 : maxY + 1,
+        maxY: 100,
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
@@ -121,33 +234,29 @@ class _LastWeekChart extends StatelessWidget {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              getTitlesWidget: (value, meta) {
-                final day = today.subtract(Duration(days: 6 - value.toInt()));
-                const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-                return Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(labels[day.weekday - 1], style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-                );
-              },
+              getTitlesWidget: (value, meta) => Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(labels[value.toInt()], style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+              ),
             ),
           ),
         ),
         barGroups: [
-          for (int i = 0; i < counts.length; i++)
+          for (int i = 0; i < values.length; i++)
             BarChartGroupData(
               x: i,
               barRods: [
                 BarChartRodData(
-                  toY: counts[i].toDouble(),
-                  color: i == counts.length - 1 ? AppColors.trading : AppColors.general,
-                  width: 18,
+                  toY: values[i],
+                  color: i == values.length - 1 ? AppColors.trading : AppColors.general,
+                  width: period == _Period.week ? 18 : 26,
                   borderRadius: BorderRadius.circular(6),
                 ),
               ],
             ),
         ],
       ),
-    );
+    ).animate().fadeIn(duration: 300.ms);
   }
 }
 

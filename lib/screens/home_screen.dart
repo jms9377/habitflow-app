@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/habit_tile.dart';
+import '../widgets/motivation_card.dart';
 import '../widgets/progress_ring.dart';
 import 'add_edit_habit_screen.dart';
 import 'habit_detail_screen.dart';
@@ -60,6 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 selected: provider.selectedDate,
                 onSelect: provider.selectDate,
               ),
+              const SizedBox(height: 16),
+              const MotivationCard(),
               const SizedBox(height: 20),
               Center(
                 child: ProgressRing(

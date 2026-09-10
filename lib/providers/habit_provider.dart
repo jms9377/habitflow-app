@@ -41,15 +41,19 @@ class HabitProvider extends ChangeNotifier {
 
   (int, int) todaysProgress() => _repo.todaysProgress();
 
-  /// Toggles completion and returns a milestone streak length if this
-  /// toggle just reached one (for the UI to celebrate), else null.
-  Future<int?> toggleCompletion(String habitId) async {
-    final wasCompleted = _repo.isCompletedOn(habitId, _selectedDate);
-    await _repo.toggleCompletion(habitId, _selectedDate);
+  /// Toggles completion for [date] (defaults to the globally selected
+  /// date used by Home) and returns a milestone streak length if this
+  /// toggle just reached one (for the UI to celebrate), else null. Passing
+  /// an explicit [date] lets other views (e.g. the monthly calendar)
+  /// backfill/edit a specific day without disturbing Home's own selection.
+  Future<int?> toggleCompletion(String habitId, {DateTime? date}) async {
+    final target = date != null ? HabitLogDateHelper.normalize(date) : _selectedDate;
+    final wasCompleted = _repo.isCompletedOn(habitId, target);
+    await _repo.toggleCompletion(habitId, target);
     notifyListeners();
 
     if (!wasCompleted) {
-      final streak = _repo.currentStreak(habitId, asOf: _selectedDate);
+      final streak = _repo.currentStreak(habitId, asOf: target);
       if (milestoneStreaks.contains(streak)) return streak;
     }
     return null;
