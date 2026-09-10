@@ -119,6 +119,27 @@ to get a real one:
    ```
    The APK will be at `build/app/outputs/flutter-apk/app-release.apk`.
 
+### Signing / why the keystore is committed
+
+Every release APK is signed with `android/keystore/habitflow-release.jks`,
+configured via `android/key.properties` (both intentionally committed,
+not gitignored - see the comment in `android/.gitignore`). This matters
+a lot in practice: **Android refuses to install an APK over an existing
+one unless both share the same signing key** - if they don't match, you
+have to uninstall the old app first, which deletes all of its local data
+(every habit and every logged day, since HabitFlow stores everything
+on-device). Early builds didn't set a signing config, so Flutter fell
+back to the Android Gradle Plugin's auto-generated **debug** keystore -
+which gets regenerated from scratch on every fresh GitHub Actions runner,
+so every CI build was signed with a different key and every "update"
+was actually an incompatible app from Android's point of view. Using one
+fixed, committed keystore for every build (local or CI) fixes that:
+installing a new APK over the app now upgrades it in place and keeps
+your data. This app isn't on the Play Store and doesn't need Play's
+signing security guarantees, so the convenience of a shared, committed
+key outweighs the (narrow) risk of it being public; if you fork this for
+your own distribution, generate your own keystore and swap it in.
+
 ## Project structure
 
 ```

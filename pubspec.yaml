@@ -1,7 +1,7 @@
 name: habitflow
 description: "HabitFlow - track your daily habits and your trading discipline, side by side."
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.1.1+2
 
 environment:
   sdk: ^3.13.3
