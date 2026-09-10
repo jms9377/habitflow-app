@@ -35,6 +35,11 @@ class _HomeScreenState extends State<HomeScreen> {
         .habitsForSelectedDate()
         .where((h) => _filter == null || h.category == _filter)
         .toList();
+    // All habits in the current filter, regardless of the selected date's
+    // schedule - used only to tell "nothing in this category yet" apart
+    // from "these exist, just not scheduled on this day" in the empty state.
+    final habitsInFilterAnyDay =
+        _filter == null ? provider.allHabits : provider.habitsByCategory(_filter!);
     final (completed, total) = provider.todaysProgress();
     final isToday = provider.selectedDate == HabitLogDateHelper.today();
 
@@ -103,7 +108,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 40),
                   child: Center(
                     child: Text(
-                      'Aún no hay hábitos programados aquí.\nToca + para añadir uno.',
+                      habitsInFilterAnyDay.isEmpty
+                          ? 'Aún no hay hábitos programados aquí.\nToca + para añadir uno.'
+                          : 'Ninguno de tus hábitos aquí está programado para ${isToday ? "hoy" : "este día"}.\n'
+                              '${habitsInFilterAnyDay.length == 1 ? "Tienes 1 hábito con" : "Tienes ${habitsInFilterAnyDay.length} hábitos con"} otros días activos - tócalo en Estadísticas para ver o cambiar sus días.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textSecondary),
                     ),

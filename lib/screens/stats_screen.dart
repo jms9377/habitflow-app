@@ -8,6 +8,15 @@ import '../models/habit.dart';
 import '../models/habit_category.dart';
 import '../providers/habit_provider.dart';
 import '../theme/app_theme.dart';
+import 'habit_detail_screen.dart';
+
+const _weekdayNames = {1: 'L', 2: 'M', 3: 'X', 4: 'J', 5: 'V', 6: 'S', 7: 'D'};
+
+String _scheduleLabel(Habit habit) {
+  if (habit.isDaily) return 'Todos los días';
+  final days = habit.activeWeekdays.toList()..sort();
+  return days.map((d) => _weekdayNames[d]).join(' ');
+}
 
 enum _Period { week, month }
 
@@ -80,6 +89,7 @@ class _StatsScreenState extends State<StatsScreen> {
             color: AppColors.general,
             habits: generalHabits,
             provider: provider,
+            repository: widget.repository,
           ),
           const SizedBox(height: 20),
           _CategorySection(
@@ -87,6 +97,7 @@ class _StatsScreenState extends State<StatsScreen> {
             color: AppColors.trading,
             habits: tradingHabits,
             provider: provider,
+            repository: widget.repository,
           ),
         ],
       ),
@@ -266,12 +277,14 @@ class _CategorySection extends StatelessWidget {
     required this.color,
     required this.habits,
     required this.provider,
+    required this.repository,
   });
 
   final String title;
   final Color color;
-  final List habits;
+  final List<Habit> habits;
   final HabitProvider provider;
+  final HabitRepository repository;
 
   @override
   Widget build(BuildContext context) {
@@ -291,16 +304,33 @@ class _CategorySection extends StatelessWidget {
             Text('Aún no hay hábitos.', style: TextStyle(color: AppColors.textSecondary))
           else
             for (final h in habits)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Text(h.emoji),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(h.name)),
-                    Text('${(provider.completionRate(h.id) * 100).round()}%',
-                        style: TextStyle(color: color, fontWeight: FontWeight.w600)),
-                  ],
+              InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => HabitDetailScreen(habitId: h.id, repository: repository),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Text(h.emoji),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(h.name),
+                            Text(_scheduleLabel(h),
+                                style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                          ],
+                        ),
+                      ),
+                      Text('${(provider.completionRate(h.id) * 100).round()}%',
+                          style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
                 ),
               ),
         ],
