@@ -29,7 +29,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
     final habit = widget.repository.getHabit(widget.habitId);
 
     if (habit == null) {
-      return const Scaffold(body: Center(child: Text('Habit not found.')));
+      return const Scaffold(body: Center(child: Text('Hábito no encontrado.')));
     }
 
     final color = AppColors.forCategory(habit.category);
@@ -55,11 +55,11 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                 context: context,
                 builder: (context) => AlertDialog(
                   backgroundColor: AppColors.surface,
-                  title: const Text('Delete habit?'),
-                  content: Text('This removes "${habit.name}" and all its history. This cannot be undone.'),
+                  title: const Text('¿Eliminar hábito?'),
+                  content: Text('Esto eliminará "${habit.name}" y todo su historial. No se puede deshacer.'),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                    TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+                    TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Eliminar')),
                   ],
                 ),
               );
@@ -102,11 +102,11 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           const SizedBox(height: 24),
           Row(
             children: [
-              Expanded(child: _StatCard(label: 'Current streak', targetValue: current.toDouble(), suffix: ' 🔥', color: color)),
+              Expanded(child: _StatCard(label: 'Racha actual', targetValue: current.toDouble(), suffix: ' 🔥', color: color)),
               const SizedBox(width: 12),
-              Expanded(child: _StatCard(label: 'Best streak', targetValue: longest.toDouble(), color: color)),
+              Expanded(child: _StatCard(label: 'Mejor racha', targetValue: longest.toDouble(), color: color)),
               const SizedBox(width: 12),
-              Expanded(child: _StatCard(label: '30-day rate', targetValue: rate * 100, suffix: '%', color: color)),
+              Expanded(child: _StatCard(label: 'Tasa 30 días', targetValue: rate * 100, suffix: '%', color: color)),
             ],
           ),
           const SizedBox(height: 28),
@@ -114,7 +114,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _view == _CalendarView.month ? 'Calendar' : 'Last 14 weeks',
+                _view == _CalendarView.month ? 'Calendario' : 'Últimas 14 semanas',
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               _ViewToggle(

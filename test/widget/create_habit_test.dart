@@ -41,15 +41,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('HabitFlow'), findsOneWidget);
-    expect(find.textContaining('No habits scheduled'), findsOneWidget);
+    expect(find.textContaining('Aún no hay hábitos'), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.add));
     await tester.pumpAndSettle();
 
-    expect(find.text('New habit'), findsOneWidget);
+    expect(find.text('Nuevo hábito'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).first, 'Drink water');
-    await tester.tap(find.text('Create habit'));
+    await tester.tap(find.text('Crear hábito'));
     await tester.runAsync(() async {
       await Future<void>.delayed(const Duration(milliseconds: 100));
     });
@@ -57,7 +57,7 @@ void main() {
 
     expect(find.byType(TextField), findsNothing, reason: 'should have navigated back off the form');
     expect(find.text('Drink water'), findsOneWidget);
-    expect(find.textContaining('No habits scheduled'), findsNothing);
+    expect(find.textContaining('Aún no hay hábitos'), findsNothing);
 
     await tearDownTestHive(tempDir);
   });

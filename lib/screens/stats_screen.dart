@@ -40,24 +40,24 @@ class _StatsScreenState extends State<StatsScreen> {
     final tradingHabits = provider.habitsByCategory(HabitCategory.trading);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Statistics')),
+      appBar: AppBar(title: const Text('Estadísticas')),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
         children: [
           Row(
             children: [
-              Expanded(child: _SummaryCard(label: 'Habits', targetValue: habits.length.toDouble())),
+              Expanded(child: _SummaryCard(label: 'Hábitos', targetValue: habits.length.toDouble())),
               const SizedBox(width: 12),
-              Expanded(child: _SummaryCard(label: 'Best streak', targetValue: bestStreak.toDouble(), suffix: ' 🔥')),
+              Expanded(child: _SummaryCard(label: 'Mejor racha', targetValue: bestStreak.toDouble(), suffix: ' 🔥')),
               const SizedBox(width: 12),
-              Expanded(child: _SummaryCard(label: 'Avg. rate', targetValue: overallRate * 100, suffix: '%')),
+              Expanded(child: _SummaryCard(label: 'Tasa media', targetValue: overallRate * 100, suffix: '%')),
             ],
           ),
           const SizedBox(height: 28),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Progress', style: Theme.of(context).textTheme.labelLarge),
+              Text('Progreso', style: Theme.of(context).textTheme.labelLarge),
               _PeriodToggle(period: _period, onChanged: (p) => setState(() => _period = p)),
             ],
           ),
@@ -76,14 +76,14 @@ class _StatsScreenState extends State<StatsScreen> {
           ),
           const SizedBox(height: 28),
           _CategorySection(
-            title: 'General habits',
+            title: 'Hábitos generales',
             color: AppColors.general,
             habits: generalHabits,
             provider: provider,
           ),
           const SizedBox(height: 20),
           _CategorySection(
-            title: 'Trading habits',
+            title: 'Hábitos de trading',
             color: AppColors.trading,
             habits: tradingHabits,
             provider: provider,
@@ -108,8 +108,8 @@ class _PeriodToggle extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _PeriodButton(label: 'Week', selected: period == _Period.week, onTap: () => onChanged(_Period.week)),
-          _PeriodButton(label: 'Month', selected: period == _Period.month, onTap: () => onChanged(_Period.month)),
+          _PeriodButton(label: 'Semana', selected: period == _Period.week, onTap: () => onChanged(_Period.week)),
+          _PeriodButton(label: 'Mes', selected: period == _Period.month, onTap: () => onChanged(_Period.month)),
         ],
       ),
     );
@@ -198,7 +198,7 @@ class _ProgressChart extends StatelessWidget {
     final labels = <String>[];
 
     if (period == _Period.week) {
-      const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      const dayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
       for (int i = 6; i >= 0; i--) {
         final day = today.subtract(Duration(days: i));
         final scheduled = habits.where((h) => h.isScheduledOn(day)).toList();
@@ -218,7 +218,7 @@ class _ProgressChart extends StatelessWidget {
           doneCount += scheduled.where((h) => repository.isCompletedOn(h.id, day)).length;
         }
         values.add(scheduledCount == 0 ? 0 : doneCount / scheduledCount * 100);
-        labels.add(w == 0 ? 'This wk' : '-${w}w');
+        labels.add(w == 0 ? 'Esta sem' : '-${w}sem');
       }
     }
 
@@ -288,7 +288,7 @@ class _CategorySection extends StatelessWidget {
           Text(title, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           if (habits.isEmpty)
-            Text('No habits yet.', style: TextStyle(color: AppColors.textSecondary))
+            Text('Aún no hay hábitos.', style: TextStyle(color: AppColors.textSecondary))
           else
             for (final h in habits)
               Padding(

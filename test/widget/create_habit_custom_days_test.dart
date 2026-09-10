@@ -28,13 +28,13 @@ void main() {
 
     await tester.enterText(find.byType(TextField).first, 'Long run');
 
-    await tester.tap(find.text('Custom days'));
+    await tester.tap(find.text('Días personalizados'));
     await tester.pumpAndSettle();
 
     // the weekday row should now be visible, starting with nothing selected
-    await tester.tap(find.text('S').first); // first "S" in M T W T F S S = Saturday (day 6)
+    await tester.tap(find.text('S').first); // "S" in L M X J V S D = Sábado (day 6)
 
-    await tester.tap(find.text('Create habit'));
+    await tester.tap(find.text('Crear hábito'));
     await tester.runAsync(() async {
       await Future<void>.delayed(const Duration(milliseconds: 100));
     });

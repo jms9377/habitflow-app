@@ -9,15 +9,19 @@ import '../providers/habit_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/category_chip.dart';
 
-const _weekdayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+const _weekdayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 const _paletteGeneral = [0xFF2DD4BF, 0xFF60A5FA, 0xFFA78BFA, 0xFF34D399];
 const _paletteTrading = [0xFFF5B342, 0xFFF87171, 0xFFFB923C, 0xFFFACC15];
 
 class AddEditHabitScreen extends StatefulWidget {
-  const AddEditHabitScreen({super.key, required this.repository, this.existing});
+  const AddEditHabitScreen({super.key, required this.repository, this.existing, this.initialCategory});
 
   final HabitRepository repository;
   final Habit? existing;
+  // Lets the caller (e.g. Home, currently filtered to one category) pre-pick
+  // that category, so a habit added while viewing "Trading" doesn't
+  // silently default to "General" and vanish from that filtered list.
+  final HabitCategory? initialCategory;
 
   @override
   State<AddEditHabitScreen> createState() => _AddEditHabitScreenState();
@@ -29,7 +33,8 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
   late final TextEditingController _noteController =
       TextEditingController(text: widget.existing?.note ?? '');
   late String _emoji = widget.existing?.emoji ?? '✨';
-  late HabitCategory _category = widget.existing?.category ?? HabitCategory.general;
+  late HabitCategory _category =
+      widget.existing?.category ?? widget.initialCategory ?? HabitCategory.general;
   late int _colorValue = widget.existing?.colorValue ?? _paletteGeneral.first;
   late final Set<int> _activeWeekdays =
       (widget.existing != null && !widget.existing!.isDaily ? widget.existing!.activeWeekdays : const <int>[])
@@ -70,13 +75,13 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Give the habit a name first.')),
+        const SnackBar(content: Text('Ponle un nombre al hábito primero.')),
       );
       return;
     }
     if (!_everyDay && _activeWeekdays.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pick at least one day, or switch to "Every day".')),
+        const SnackBar(content: Text('Elige al menos un día, o cambia a "Todos los días".')),
       );
       return;
     }
@@ -114,7 +119,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
     final palette = _category == HabitCategory.trading ? _paletteTrading : _paletteGeneral;
 
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? 'Edit habit' : 'New habit')),
+      appBar: AppBar(title: Text(_isEditing ? 'Editar hábito' : 'Nuevo hábito')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -133,7 +138,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
           ),
           const SizedBox(height: 20),
           if (!_isEditing) ...[
-            Text('Quick templates', style: Theme.of(context).textTheme.labelLarge),
+            Text('Plantillas rápidas', style: Theme.of(context).textTheme.labelLarge),
             const SizedBox(height: 8),
             SizedBox(
               height: 40,
@@ -160,7 +165,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
               Expanded(
                 child: TextField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Habit name'),
+                  decoration: const InputDecoration(labelText: 'Nombre del hábito'),
                 ),
               ),
             ],
@@ -169,16 +174,16 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
           TextField(
             controller: _noteController,
             maxLines: 2,
-            decoration: const InputDecoration(labelText: 'Note (optional)'),
+            decoration: const InputDecoration(labelText: 'Nota (opcional)'),
           ),
           const SizedBox(height: 20),
-          Text('Repeat', style: Theme.of(context).textTheme.labelLarge),
+          Text('Repetir', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: _RepeatModeButton(
-                  label: 'Every day',
+                  label: 'Todos los días',
                   selected: _everyDay,
                   color: AppColors.forCategory(_category),
                   onTap: () => setState(() => _everyDay = true),
@@ -187,7 +192,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: _RepeatModeButton(
-                  label: 'Custom days',
+                  label: 'Días personalizados',
                   selected: !_everyDay,
                   color: AppColors.forCategory(_category),
                   onTap: () => setState(() => _everyDay = false),
@@ -206,7 +211,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Tap the days this habit repeats on',
+                          'Toca los días en que se repite este hábito',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
                         ),
                         const SizedBox(height: 10),
@@ -262,7 +267,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
             onPressed: _save,
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(_isEditing ? 'Save changes' : 'Create habit'),
+              child: Text(_isEditing ? 'Guardar cambios' : 'Crear hábito'),
             ),
           ),
         ],

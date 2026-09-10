@@ -7,7 +7,10 @@ import '../models/habit.dart';
 import '../providers/habit_provider.dart';
 import '../theme/app_theme.dart';
 
-const _weekdayHeaders = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+const _weekdayHeaders = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+// intl's Spanish month names come back lowercase ("septiembre de 2026").
+String _capitalize(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
 /// A real month-grid calendar (not the compact contribution heatmap) for
 /// one habit: navigate between months, and tap any past/today cell to
@@ -78,7 +81,7 @@ class _MonthlyCalendarState extends State<MonthlyCalendar> {
               onPressed: () => _shiftMonth(-1),
             ),
             Text(
-              DateFormat.yMMMM().format(_visibleMonth),
+              _capitalize(DateFormat.yMMMM('es').format(_visibleMonth)),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             IconButton(

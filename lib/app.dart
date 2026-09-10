@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'data/habit_repository.dart';
@@ -6,6 +7,7 @@ import 'providers/habit_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/stats_screen.dart';
 import 'theme/app_theme.dart';
+import 'widgets/glass_bottom_nav.dart';
 
 class HabitFlowApp extends StatelessWidget {
   const HabitFlowApp({super.key, required this.repository});
@@ -22,6 +24,13 @@ class HabitFlowApp extends StatelessWidget {
         theme: AppTheme.dark,
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.dark,
+        locale: const Locale('es'),
+        supportedLocales: const [Locale('es')],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         home: RootShell(repository: repository),
       ),
     );
@@ -40,6 +49,21 @@ class RootShell extends StatefulWidget {
 class _RootShellState extends State<RootShell> {
   int _index = 0;
 
+  static const _items = [
+    GlassNavItem(
+      icon: Icons.checklist_rounded,
+      activeIcon: Icons.checklist_rounded,
+      label: 'Hoy',
+      color: AppColors.general,
+    ),
+    GlassNavItem(
+      icon: Icons.bar_chart_rounded,
+      activeIcon: Icons.bar_chart_rounded,
+      label: 'Estadísticas',
+      color: AppColors.trading,
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final screen = _index == 0
@@ -47,6 +71,7 @@ class _RootShellState extends State<RootShell> {
         : StatsScreen(key: const ValueKey('stats'), repository: widget.repository);
 
     return Scaffold(
+      extendBody: true,
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 220),
         transitionBuilder: (child, animation) => FadeTransition(
@@ -58,13 +83,10 @@ class _RootShellState extends State<RootShell> {
         ),
         child: screen,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _index,
+      bottomNavigationBar: GlassBottomNav(
+        items: _items,
+        index: _index,
         onTap: (i) => setState(() => _index = i),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.checklist_rounded), label: 'Today'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), label: 'Stats'),
-        ],
       ),
     );
   }

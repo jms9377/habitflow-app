@@ -29,6 +29,9 @@ network dependency for the app to work.
   custom-painted progress ring for "today", Hero transitions from list to
   detail, and staggered list entrance animations - no generic
   off-the-shelf look.
+- Fully localized to Spanish (UI copy, weekday/month names, date formatting).
+- A floating, frosted-glass bottom nav bar (blurred/translucent, iOS-style)
+  with an animated sliding indicator between tabs.
 
 ## Tech stack
 

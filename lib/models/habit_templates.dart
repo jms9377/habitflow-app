@@ -17,53 +17,53 @@ class HabitTemplate {
 }
 
 const List<HabitTemplate> generalHabitTemplates = [
-  HabitTemplate(name: 'Drink water', emoji: '💧', category: HabitCategory.general),
-  HabitTemplate(name: 'Exercise', emoji: '🏃', category: HabitCategory.general),
-  HabitTemplate(name: 'Read 10 pages', emoji: '📖', category: HabitCategory.general),
-  HabitTemplate(name: 'Sleep 7+ hours', emoji: '😴', category: HabitCategory.general),
-  HabitTemplate(name: 'Meditate', emoji: '🧘', category: HabitCategory.general),
-  HabitTemplate(name: 'No sugar', emoji: '🍬', category: HabitCategory.general),
-  HabitTemplate(name: 'Tidy workspace', emoji: '🧹', category: HabitCategory.general),
-  HabitTemplate(name: 'Learn something new', emoji: '💡', category: HabitCategory.general),
+  HabitTemplate(name: 'Beber agua', emoji: '💧', category: HabitCategory.general),
+  HabitTemplate(name: 'Hacer ejercicio', emoji: '🏃', category: HabitCategory.general),
+  HabitTemplate(name: 'Leer 10 páginas', emoji: '📖', category: HabitCategory.general),
+  HabitTemplate(name: 'Dormir 7+ horas', emoji: '😴', category: HabitCategory.general),
+  HabitTemplate(name: 'Meditar', emoji: '🧘', category: HabitCategory.general),
+  HabitTemplate(name: 'Sin azúcar', emoji: '🍬', category: HabitCategory.general),
+  HabitTemplate(name: 'Ordenar el espacio de trabajo', emoji: '🧹', category: HabitCategory.general),
+  HabitTemplate(name: 'Aprender algo nuevo', emoji: '💡', category: HabitCategory.general),
 ];
 
 const List<HabitTemplate> tradingHabitTemplates = [
   HabitTemplate(
-    name: 'Followed my trading plan',
+    name: 'Seguí mi plan de trading',
     emoji: '📋',
     category: HabitCategory.trading,
-    note: 'Did every trade today match a pre-defined setup and rule, not impulse?',
+    note: '¿Cada operación de hoy siguió un setup y una regla predefinidos, y no un impulso?',
   ),
   HabitTemplate(
-    name: 'Respected max risk per trade',
+    name: 'Respeté el riesgo máximo por operación',
     emoji: '🛡️',
     category: HabitCategory.trading,
-    note: 'Stayed within your configured risk-per-trade on every position.',
+    note: 'Te mantuviste dentro del riesgo configurado por operación en cada posición.',
   ),
   HabitTemplate(
-    name: 'No revenge trading',
+    name: 'Sin revenge trading',
     emoji: '🚫',
     category: HabitCategory.trading,
-    note: 'Did not try to "win back" a loss with an unplanned trade.',
+    note: 'No intentaste "recuperar" una pérdida con una operación no planificada.',
   ),
   HabitTemplate(
-    name: 'Journaled every trade',
+    name: 'Registré cada operación en el diario',
     emoji: '📝',
     category: HabitCategory.trading,
   ),
   HabitTemplate(
-    name: 'Pre-market checklist',
+    name: 'Checklist antes del mercado',
     emoji: '✅',
     category: HabitCategory.trading,
-    note: 'Reviewed bias, key levels and news before the session opened.',
+    note: 'Revisaste el sesgo, niveles clave y noticias antes de abrir la sesión.',
   ),
   HabitTemplate(
-    name: 'Stopped at daily loss limit',
+    name: 'Me detuve al llegar al límite de pérdida diaria',
     emoji: '🛑',
     category: HabitCategory.trading,
   ),
   HabitTemplate(
-    name: 'Reviewed today\'s trades',
+    name: 'Revisé las operaciones de hoy',
     emoji: '🔍',
     category: HabitCategory.trading,
   ),

@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
         floatingActionButton: FloatingActionButton(
           onPressed: () => Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => AddEditHabitScreen(repository: widget.repository),
+              builder: (_) => AddEditHabitScreen(repository: widget.repository, initialCategory: _filter),
             ),
           ),
           child: const Icon(Icons.add),
@@ -68,8 +68,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: ProgressRing(
                   progress: total == 0 ? 0 : completed / total,
                   label: isToday
-                      ? '$completed / $total today'
-                      : '$completed / $total that day',
+                      ? '$completed / $total hoy'
+                      : '$completed / $total ese día',
                 ),
               ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.9, 0.9)),
               const SizedBox(height: 24),
@@ -103,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 40),
                   child: Center(
                     child: Text(
-                      'No habits scheduled here yet.\nTap + to add one.',
+                      'Aún no hay hábitos programados aquí.\nToca + para añadir uno.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textSecondary),
                     ),
@@ -125,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('🔥 $milestone-day streak on ${habits[i].name}!'),
+                                content: Text('🔥 ¡Racha de $milestone días en ${habits[i].name}!'),
                                 backgroundColor: AppColors.forCategory(habits[i].category),
                               ),
                             );
@@ -169,7 +169,7 @@ class _AllChip extends StatelessWidget {
         border: Border.all(color: selected ? Colors.white38 : AppColors.border),
       ),
       child: Text(
-        'All',
+        'Todos',
         style: TextStyle(
           color: selected ? Colors.white : AppColors.textSecondary,
           fontWeight: FontWeight.w600,
@@ -213,7 +213,7 @@ class _DateStrip extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        DateFormat.E().format(day).substring(0, 1),
+                        DateFormat.E('es').format(day).substring(0, 1).toUpperCase(),
                         style: TextStyle(
                           color: day == selected ? AppColors.general : AppColors.textSecondary,
                           fontSize: 12,

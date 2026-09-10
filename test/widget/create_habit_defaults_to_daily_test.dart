@@ -30,7 +30,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).first, 'Stretch');
-    await tester.tap(find.text('Create habit'));
+    await tester.tap(find.text('Crear hábito'));
     await tester.runAsync(() async {
       await Future<void>.delayed(const Duration(milliseconds: 100));
     });

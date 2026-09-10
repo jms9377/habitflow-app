@@ -89,7 +89,7 @@ class _HabitTileState extends State<HabitTile>
                         const Text('🔥', style: TextStyle(fontSize: 12)),
                         const SizedBox(width: 4),
                         Text(
-                          '${widget.streak} day${widget.streak == 1 ? '' : 's'}',
+                          '${widget.streak} día${widget.streak == 1 ? '' : 's'}',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: AppColors.textSecondary,
                               ),
