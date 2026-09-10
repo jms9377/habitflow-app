@@ -91,7 +91,6 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
         note: note.isEmpty ? null : note,
       );
     }
-
     if (mounted) Navigator.of(context).pop();
   }
 

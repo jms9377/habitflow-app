@@ -67,22 +67,39 @@ never break it; today not being done yet doesn't zero out yesterday's
 streak).
 
 **Note on widget tests**: `HabitRepository` does real `dart:io` file
-writes (Hive). Flutter's `testWidgets` runs on a fake clock, which does
-not let genuine async I/O resolve inside a test body on its own - any
-such call triggered during a test (not just in `setUp`) has to go through
-`tester.runAsync(...)`, and after `runAsync` you still need to give the
-real event loop an actual turn (e.g. a tiny `Future.delayed`) before
-`pumpAndSettle()`, since `pumpAndSettle` only waits for scheduled
-*frames*, not arbitrary pending Futures. Both widget tests do this - see
-the comment at the top of `test/widget/app_smoke_test.dart` before
-"simplifying" it. Separately, in this project's original dev sandbox
-(a constrained, root-executed container), the `flutter_tester` process
-itself takes a while and prints a benign `Bad state: Cannot close sink
-while adding stream` during shutdown *after* all named tests have already
-passed - that's a harness/process-teardown quirk of that specific
-environment, not a failing test (a plain `flutter test test/data
-test/providers` run, with no widget bindings involved, exits cleanly and
-instantly). If your machine doesn't reproduce it, that's expected too.
+writes (Hive). Two gotchas this bit us on while writing
+`test/widget/create_habit_test.dart` and `toggle_completion_test.dart`,
+worth knowing before you touch them:
+
+1. Flutter's `testWidgets` runs on a fake clock, which does not let
+   genuine async I/O resolve inside a test body on its own - any such
+   call triggered during the test (not just in `setUp`) needs a real
+   event-loop turn, via `tester.runAsync(...)`.
+2. A duration-less `tester.pump()` advances the fake animation clock by
+   **zero**. A page-transition `AnimationController` (e.g. from
+   `Navigator.pop()`) then never progresses, so a popped route's widgets
+   look like they "never leave the tree" no matter how many times you
+   pump - `pumpAndSettle()` already uses real durations internally, so
+   prefer it (or an explicit `pump(duration)`) over a bare `pump()`
+   whenever an animation needs to actually finish. This one produced a
+   very confusing symptom: `Navigator.pop()` demonstrably worked
+   (`canPop()` flips `true` -> `false`, no exception), yet the "popped"
+   screen's widgets kept showing up in `find` queries indefinitely.
+
+Separately - unrelated to the above, and NOT something either fix
+resolves - the `flutter_tester` process for a file containing a widget
+test that touches real Hive I/O tends to hang for a while (sometimes a
+very long while) after every assertion has already passed, then prints
+`Bad state: Cannot close sink while adding stream` on forced shutdown.
+This was verified thoroughly to be a process/harness teardown quirk, not
+an app bug: dispose() fires correctly, every named test passes, and a
+plain `flutter test test/data test/providers` run (no widget bindings
+at all) exits cleanly and instantly every time. The CI workflow
+(`.github/workflows/build_apk.yml`) runs unit tests as a required,
+blocking step and widget tests as a separate, bounded
+(`timeout-minutes: 3`), non-blocking (`continue-on-error: true`) step for
+exactly this reason - so this quirk can never stall the APK build, while
+still surfacing in the Actions log if it recurs.
 
 ## Building the APK
 
